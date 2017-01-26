@@ -37,6 +37,9 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 def getCategories():
+	"""
+	Function to obtain all the categories ...
+	"""
 	categories = session.query(Category).all()
 	return categories
 
@@ -272,6 +275,9 @@ def newItem():
 
 @app.route("/catalog/<string:item_title>/edit", methods=['GET', 'POST'])
 def editItem(item_title):
+	"""
+	Function used to edit an item
+	"""
 	user_id = getUserId(login_session["email"])
 	print "user_id: %s" % user_id
 	pageTitle = "Edit " + item_title	
@@ -318,6 +324,9 @@ def editItem(item_title):
 
 @app.route("/catalog/<string:item_title>/delete", methods=['GET', 'POST'])
 def deleteItem(item_title):
+	"""
+	Function to delete an item
+	"""
 	pageTitle = "Delete " + item_title
 	item = session.query(Item).filter_by(title = item_title).one()
 	categoryItem = session.query(Category).filter_by(id = item.cat_id).one()
@@ -340,6 +349,9 @@ def deleteItem(item_title):
 
 @app.route("/catalog.json")
 def showJSON():
+	"""
+	Function used as API of the application
+	"""
 	categories = getCategories()
 	items = session.query(Item).all()
 	catalog = { "Category": [c.serialize for c in categories]}
@@ -348,10 +360,16 @@ def showJSON():
 	return jsonify(catalog)
 
 def getUserInfo(user_id):
+	"""
+	Get User Info by id
+	"""
 	user = session.query(User).filter_by(id = user_id).one()
 	return user
 
 def getUserId(email):
+	"""
+	Function which obtains User´s id from an email (if exists) ...
+	"""
 	try:
 		user = session.query(User).filter_by(email = email).one()
 		return user.id
@@ -359,6 +377,9 @@ def getUserId(email):
 		return None
 
 def createUser(login_session):
+	"""
+	Function which creates a new User
+	"""
 	newUser = User(name = login_session["username"], email = login_session["email"], picture = login_session["picture"])
 	session.add(newUser)
 	session.commit()
