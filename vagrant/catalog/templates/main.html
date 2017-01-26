@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+	<link rel=stylesheet type=text/css href="{{url_for('static', filename='styles.css') }}">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  	<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+	<title>{{pageTitle}}</title>
+</head>
+<body>
+	<div class="container">
+		<div class="row header">
+  			<div class="col-md-8">
+  				<a href = '{{url_for("showCatalog")}}' class="home">Catalog App</a>
+  			</div>
+  			<div class="col-md-4" id="sign_in_button">
+  				{% if user_id == '' %}
+  					<span class="g-signin"
+				      data-scope="openid email"	
+				      data-clientid="481973750855-jh0vdi84ranmvn170bg8ojm25117us00.apps.googleusercontent.com"
+				      data-redirecturi="postmessage"
+				      data-accesstype="offline"
+				      data-cookiepolicy="single_host_origin"
+				      data-callback="signInCallback"
+				      data-approvalprompt="force"
+				      data-width="500">
+				    </span>
+  				{% else %}
+  					<a href="{{url_for('gdisconnect')}}" class="home">Logout</a>
+  				{% endif %}
+  			</div>
+		</div>
+				{% with messages = get_flashed_messages() %}
+		      	{% if messages %}
+		      		<div class="row">
+						<div class="col-md-12 text-center flash">
+		        		{% for message in messages %}
+		            		{{ message }}
+		        		{% endfor %}
+		        	    </div>
+					</div>
+		        {% endif %}
+		    	{% endwith %}
+		<div class="row white_wall">
+			<div class="row grey_wall">
+			{% block content %}
+			{% endblock %}
+			</div>
+		</div>
+	</div>
+	<script>
+    	function signInCallback(authResult){
+        	if(authResult['code']){
+        		$('#sign_in_button').attr('style','display:none');
+                $.ajax({
+                    type:'POST',
+                    url: '/gconnect?state={{STATE}}',
+                    processData:false,
+                    contentType:  'application/octet-stream; charset=utf-8',
+                    data: authResult['code'],
+                    success:function(result){
+                        	console.log(result);
+                        	if(result){
+                            	setTimeout(function(){window.location.href="{{location}}";}, 500);
+                        	}
+                        	else if(authResult['error']){
+                            	console.log('Something\'s gone horribly wrong: ' + authResult['error'])
+                        	}
+                    }
+                }) 
+            }
+        }
+    </script>
+</body>
+</html>

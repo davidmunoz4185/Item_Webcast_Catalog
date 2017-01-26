@@ -1,0 +1,22 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "categories.html" %}
+<div class="col-md-8">
+	{% if user_id != '' %}
+	<a href = '{{url_for("newItem")}}' class="red_link">
+		<div>Add Item</div>
+	</a>
+	{% endif %}
+	<h2>Latest Items</h2>
+	{% for item in items %}
+		<div>
+		<a href = '{{url_for("showItem", category_name = category_names[item.cat_id], item_title = item.title)}}' class="red_link">
+			{{item.title}}
+		</a>
+		<a href = '{{url_for("showCategory", category_name = category_names[item.cat_id])}}' class="grey_link">
+			<i>({{category_names[item.cat_id]}})</i>
+		</a>
+		</div>
+	{% endfor %}
+</div>
+{% endblock %}

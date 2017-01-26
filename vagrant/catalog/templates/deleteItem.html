@@ -1,0 +1,29 @@
+{% extends "main.html" %}
+{% block content %}
+<div>
+	<h2>Delete Item</h2>
+	</br>
+	<h3>You are about to delete</h3>
+	</br>
+	<form action="{{url_for('deleteItem', item_title = item.title)}}" enctype="multipart/form-data" method="POST">
+		<label>Title</label>
+		</br>
+		<input type="text" name="title" value="{{item.title}}"/>
+		</br>
+		</br>
+		<label>Description</label>
+		</br>
+		<textarea name="description" rows="10" col="1000" style="width: 300px; height: 150px;">{{item.description}}</textarea>
+		</br>
+		</br>
+		<label>Category</label>
+		</br>
+		<input type="text" name="title" value="{{categoryItem.name}}"/>
+		</br>
+		</br>
+		<button type="submit">Delete</button>
+    	<button><a href="{{url_for('showCatalog')}}" class="cancelButton">Cancel</a></button>
+    	</br>
+	</form>
+</div>
+{% endblock %}

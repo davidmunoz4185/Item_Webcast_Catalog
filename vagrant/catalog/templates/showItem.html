@@ -1,0 +1,30 @@
+{% extends "main.html" %}
+{% block content %}
+<div>
+	<h2>{{item.title}}</h2>
+</div>
+<div class="itemDescription">
+	<bold>{{item.description}}</bold>
+</div>
+{% if user_id == item.user_id %}
+<div class="row">
+<div class="col-md-7">
+	<a href = '{{url_for("editItem", item_title = item.title)}}' class="red_link">
+		Edit
+	</a>
+	<text class="text"> | </text>
+	<a href = '{{url_for("deleteItem", item_title = item.title)}}' class="red_link">
+		Delete
+	</a>
+	<text class="text"> | </text>
+	<a href = '{{url_for("showCategory", category_name = categoryItem.name)}}' class="red_link">
+		Category
+	</a>
+	<text class="text"> | </text>
+	<a href = '{{url_for("showCatalog")}}' class="red_link">
+		Catalog
+	</a>
+</div>
+</div>
+{% endif %}
+{% endblock %}

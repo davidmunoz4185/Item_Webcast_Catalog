@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "categories.html" %}
+<div class="col-md-8">
+	<h2>{{categoryItem.name}} Items ({{items|length}} items)</h2>
+	{% if items|length == 0 %}
+		<div>
+			No items to show
+		</div>
+	{% else %}
+		{% for item in items %}
+			<div>
+				<a href = '{{url_for("showItem", category_name = categoryItem.name, item_title = item.title)}}' class="red_link">
+					{{item.title}}
+				</a>
+			</div>
+		{% endfor %}
+	{% endif %}
+	
+</div>
+{% endblock %}

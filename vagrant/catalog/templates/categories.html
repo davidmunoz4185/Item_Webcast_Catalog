@@ -1,0 +1,10 @@
+<div class="col-md-4">
+	<h2>Categories</h2>
+	{% for category in categories %}
+		<div>
+			<a class="red_link" href = '{{url_for("showCategory", category_name = category.name)}}'>
+				{{category.name}}
+			</a>
+		</div>
+	{% endfor %}
+</div>
