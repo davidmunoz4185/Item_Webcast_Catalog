@@ -368,7 +368,7 @@ def getUserInfo(user_id):
 
 def getUserId(email):
 	"""
-	Function which obtains User´s id from an email (if exists) ...
+	Function which obtains User's id from an email (if exists) ...
 	"""
 	try:
 		user = session.query(User).filter_by(email = email).one()
