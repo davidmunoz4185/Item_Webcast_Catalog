@@ -2,7 +2,7 @@
 {% block content %}
 {% include "categories.html" %}
 <div class="col-md-8">
-	{% if user_id != '' %}
+	{% if user_id %}
 	<a href = '{{url_for("newItem")}}' class="red_link">
 		<div>Add Item</div>
 	</a>
