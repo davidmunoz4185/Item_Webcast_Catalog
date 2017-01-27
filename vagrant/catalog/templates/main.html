@@ -15,7 +15,7 @@
   				<a href = '{{url_for("showCatalog")}}' class="home">Catalog App</a>
   			</div>
   			<div class="col-md-4" id="sign_in_button">
-  				{% if user_id == '' %}
+  				{% if not user_id %}
   					<span class="g-signin"
 				      data-scope="openid email"	
 				      data-clientid="481973750855-jh0vdi84ranmvn170bg8ojm25117us00.apps.googleusercontent.com"

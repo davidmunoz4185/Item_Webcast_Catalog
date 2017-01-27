@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from flask import Flask
 from flask import render_template
 from flask import jsonify
@@ -5,22 +6,24 @@ from flask import request
 from flask import redirect
 from flask import url_for
 from flask import flash
+from flask import g
+from flask import make_response
 from flask import session as login_session
 from sqlalchemy import create_engine
 from sqlalchemy import asc
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy import desc
+from sqlalchemy.orm import sessionmaker
 from database_setup import Base
 from database_setup import User
 from database_setup import Category
 from database_setup import Item
-import random
-import string
+from functools import wraps
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
 import json
-from flask import make_response
+import random
+import string
 import requests
 
 app = Flask(__name__)
@@ -42,6 +45,16 @@ def getCategories():
 	"""
 	categories = session.query(Category).all()
 	return categories
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'email' in login_session:
+            return f(*args, **kwargs)
+        else:
+            flash("You are not allowed to access there")
+            return redirect('/')
+    return decorated_function
 
 @app.route('/login')
 def showLogin():
@@ -221,6 +234,7 @@ def showItem(category_name, item_title):
 	user_id = None
 	if "email" in login_session:
 		user_id = getUserId(login_session["email"])
+	#user_id = getUserId(login_session["email"])
 	location = "/catalog/%s/%s" % (category_name,item_title)
 	#if "username" not in login_session:
 	#	user_id = ''
@@ -240,14 +254,15 @@ def showItem(category_name, item_title):
 							user_id = user_id,
 							STATE = state)
 
+@login_required
 @app.route("/catalog/new", methods=['GET', 'POST'])
 def newItem():
 	pageTitle = "New Item"
 	categories = getCategories()
-	if "username" not in login_session:
-		flash_message = "YOU NEED TO LOGIN FIRST ..."
-		flash(flash_message)
-		return redirect(url_for("showCatalog"))
+	#if "username" not in login_session:
+	#	flash_message = "YOU NEED TO LOGIN FIRST ..."
+	#	flash(flash_message)
+	#	return redirect(url_for("showCatalog"))
 	if request.method == "POST":
 		user_id = getUserId(login_session["email"])
 		if not user_id:
@@ -273,23 +288,24 @@ def newItem():
 								pageTitle = pageTitle,
 								categories = categories)
 
+@login_required
 @app.route("/catalog/<string:item_title>/edit", methods=['GET', 'POST'])
 def editItem(item_title):
 	"""
 	Function used to edit an item
 	"""
 	user_id = getUserId(login_session["email"])
-	print "user_id: %s" % user_id
+	#print "user_id: %s" % user_id
 	pageTitle = "Edit " + item_title	
 	item = session.query(Item).filter_by(title = item_title).one()
-	print "item user_id: %s" % item.user_id
+	#print "item user_id: %s" % item.user_id
 	currentItem = Item(title = item.title, description = item.description, cat_id = item.cat_id)
 	categories = getCategories()
 	categoryItem = session.query(Category).filter_by(id = item.cat_id).one()
-	if "username" not in login_session:
-		flash_message = "YOU NEED TO LOGIN FIRST ..."
-		flash(flash_message)
-		return redirect(url_for("showItem", category_name = categoryItem.name, item_title = item_title))	
+	#if "username" not in login_session:
+	#	flash_message = "YOU NEED TO LOGIN FIRST ..."
+	#	flash(flash_message)
+	#	return redirect(url_for("showItem", category_name = categoryItem.name, item_title = item_title))	
 	if request.method == "POST":
 		existingItems = session.query(Item).filter_by(title = request.form['title']).count()
 		if existingItems > 0:
@@ -315,18 +331,25 @@ def editItem(item_title):
 				flash(flash_message)
 			return redirect(url_for("showCatalog"))
 	else:
-		return render_template("editItem.html",
-								pageTitle = pageTitle,
-								categories = categories,
-								categoryItem = categoryItem,
-								item = item,
-								user_id = user_id)
+		if user_id == item.user_id:
+			return render_template("editItem.html",
+									pageTitle = pageTitle,
+									categories = categories,
+									categoryItem = categoryItem,
+									item = item,
+									user_id = user_id)
+		else:
+			flash_message = "EDIT IS NOT ALLOWED FOR YOU ..."
+			flash(flash_message)
+			return redirect(url_for("showItem", category_name = categoryItem.name, item_title = item.title))
 
+@login_required
 @app.route("/catalog/<string:item_title>/delete", methods=['GET', 'POST'])
 def deleteItem(item_title):
 	"""
 	Function to delete an item
 	"""
+	user_id = getUserId(login_session["email"])
 	pageTitle = "Delete " + item_title
 	item = session.query(Item).filter_by(title = item_title).one()
 	categoryItem = session.query(Category).filter_by(id = item.cat_id).one()
@@ -342,10 +365,16 @@ def deleteItem(item_title):
 		flash(flash_message)
 		return redirect(url_for("showCatalog"))
 	else:
-		return render_template("deleteItem.html",
-								pageTitle = pageTitle,
-								categoryItem = categoryItem,
-								item = item)
+		if user_id == item.user_id:
+			return render_template("deleteItem.html",
+									pageTitle = pageTitle,
+									categoryItem = categoryItem,
+									item = item,
+									user_id = item.user_id)
+		else:
+			flash_message = "DELETE IS NOT ALLOWED FOR YOU ..."
+			flash(flash_message)
+			return redirect(url_for("showItem", category_name = categoryItem.name, item_title = item.title))
 
 @app.route("/catalog.json")
 def showJSON():
@@ -368,7 +397,7 @@ def getUserInfo(user_id):
 
 def getUserId(email):
 	"""
-	Function which obtains User's id from an email (if exists) ...
+	Function which obtains User´s id from an email (if exists) ...
 	"""
 	try:
 		user = session.query(User).filter_by(email = email).one()
