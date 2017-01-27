@@ -394,17 +394,17 @@ def deleteItem(item_title):
                                     item_title=item.title))
 
 
-@app.route("/catalog.json")
-def showJSON():
-    """
-    Function used as API of the application
-    """
+@app.route('/catalog/JSON')
+def categoriesJSON():
     categories = getCategories()
-    items = session.query(Item).all()
-    catalog = {"Category": [c.serialize for c in categories]}
-    for c in catalog["Category"]:
-        c["Item"] = [item.serialize for item in items if item.cat_id]
-    return jsonify(catalog)
+    return jsonify(categories=[category.serialize for category in categories])
+
+
+@app.route('/catalog/<string:category_name>/items/JSON')
+def itemsJSON(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(cat_id=category.id).all()
+    return jsonify(items=[item.serialize for item in items])
 
 
 def getUserInfo(user_id):
