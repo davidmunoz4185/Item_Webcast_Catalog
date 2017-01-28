@@ -311,35 +311,36 @@ def editItem(item_title):
     categories = getCategories()
     categoryItem = session.query(Category).filter_by(id=item.cat_id).one()
     if request.method == "POST":
-        existingItems = session.query(Item).filter_by(
-            title=request.form['title']).count()
-        if existingItems > 0:
-            existingItem = session.query(Item).filter_by(
-                title=request.form['title']).one()
-        if existingItems > 0 and existingItem.id != item.id:
-            flash_message = "ITEM " + existingItem.title
-            flash_message += " ALREADY EXISTS ..."
-            flash(flash_message)
-            return render_template("editItem.html",
-                                   pageTitle=pageTitle,
-                                   categories=categories,
-                                   categoryItem=categoryItem,
-                                   item=item,
-                                   user_id=user_id)
-        else:
-            category = session.query(Category).filter_by(
-                name=request.form["category"]).one()
-            if (request.form["title"] != item.title or
-               request.form["description"] != item.description or
-               category.id != item.cat_id):
-                    flash_message = "ITEM " + item.title + " UPDATED ..."
-                    item.title = request.form["title"]
-                    item.description = request.form["description"]
-                    item.cat_id = category.id
-                    session.add(item)
-                    session.commit()
-                    flash(flash_message)
-            return redirect(url_for("showCatalog"))
+        if user_id == item.user_id:
+            existingItems = session.query(Item).filter_by(
+                title=request.form['title']).count()
+            if existingItems > 0:
+                existingItem = session.query(Item).filter_by(
+                    title=request.form['title']).one()
+            if existingItems > 0 and existingItem.id != item.id:
+                flash_message = "ITEM " + existingItem.title
+                flash_message += " ALREADY EXISTS ..."
+                flash(flash_message)
+                return render_template("editItem.html",
+                                       pageTitle=pageTitle,
+                                       categories=categories,
+                                       categoryItem=categoryItem,
+                                       item=item,
+                                       user_id=user_id)
+            else:
+                category = session.query(Category).filter_by(
+                    name=request.form["category"]).one()
+                if (request.form["title"] != item.title or
+                   request.form["description"] != item.description or
+                   category.id != item.cat_id):
+                        flash_message = "ITEM " + item.title + " UPDATED ..."
+                        item.title = request.form["title"]
+                        item.description = request.form["description"]
+                        item.cat_id = category.id
+                        session.add(item)
+                        session.commit()
+                        flash(flash_message)
+                return redirect(url_for("showCatalog"))
     else:
         if user_id == item.user_id:
             return render_template("editItem.html",
@@ -404,6 +405,12 @@ def categoriesJSON():
 def itemsJSON(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(cat_id=category.id).all()
+    return jsonify(items=[item.serialize for item in items])
+
+
+@app.route('/catalog/item/<string:item_title>/JSON')
+def itemJSON(item_title):
+    items = session.query(Item).filter_by(title=item_title).all()
     return jsonify(items=[item.serialize for item in items])
 
 
